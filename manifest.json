@@ -1,0 +1,27 @@
+{
+	"manifest_version": 3,
+	"name": "ActionWebTracer",
+	"version": "0.1.0",
+	"description": "Trace browser evidence produced by a user action.",
+	"minimum_chrome_version": "125",
+	"permissions": [
+		"activeTab",
+		"debugger",
+		"scripting",
+		"sidePanel",
+		"storage"
+	],
+	"action": {
+		"default_title": "Open ActionWebTracer"
+	},
+	"background": {
+		"service_worker": "background.js",
+		"type": "module"
+	},
+	"side_panel": {
+		"default_path": "sidepanel.html"
+	},
+	"content_security_policy": {
+		"extension_pages": "script-src 'self'; object-src 'self';"
+	}
+}
