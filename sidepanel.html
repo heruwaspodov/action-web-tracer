@@ -6,9 +6,23 @@
 		<title>ActionWebTracer</title>
 	</head>
 	<body>
-		<main>
+		<main aria-labelledby="panel-title">
 			<h1>ActionWebTracer</h1>
-			<p>Extension shell ready. Recording controls arrive in AWT-007.</p>
+			<p id="panel-title">Trace what happens after an action in this tab.</p>
+			<p id="recording-badge" aria-live="polite"></p>
+			<section aria-labelledby="status-title">
+				<h2 id="status-title">Recording status</h2>
+				<p id="recording-status" role="status"></p>
+				<p id="recording-detail"></p>
+			</section>
+			<section aria-labelledby="privacy-title">
+				<h2 id="privacy-title">Permission and privacy</h2>
+				<p>Tracing uses Chrome debugger access only for this tab. Captured evidence stays on this device; request bodies, response bodies, cookies, form values, and WebSocket payloads are not captured.</p>
+			</section>
+			<div aria-label="Recording controls">
+				<button id="start-recording" type="button">Trace This Tab</button>
+				<button id="stop-recording" type="button">Stop</button>
+			</div>
 		</main>
 		<script type="module" src="./sidepanel.js"></script>
 	</body>

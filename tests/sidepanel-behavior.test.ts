@@ -10,4 +10,12 @@ describe('toolbar side panel behavior', () => {
 		expect(serviceWorker).toContain('openPanelOnActionClick: true');
 		expect(serviceWorker).not.toContain('chrome.sidePanel.open(');
 	});
+
+	it('provides native, labelled and keyboard-accessible recording controls', async () => {
+		const panel = await readFile('sidepanel.html', 'utf8');
+		expect(panel).toContain('id="start-recording" type="button"');
+		expect(panel).toContain('id="stop-recording" type="button"');
+		expect(panel).toContain('role="status"');
+		expect(panel).toContain('Permission and privacy');
+	});
 });
