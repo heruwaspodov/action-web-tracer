@@ -18,4 +18,16 @@ export default tseslint.config(
 			},
 		},
 	},
+	{
+		files: ['test-fixtures/app/**/*.js'],
+		languageOptions: {
+			globals: globals.browser,
+		},
+	},
+	{
+		files: ['test-fixtures/**/*.mjs'],
+		languageOptions: {
+			globals: globals.node,
+		},
+	},
 );

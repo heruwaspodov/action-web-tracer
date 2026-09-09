@@ -1,0 +1,27 @@
+{
+	"schemaVersion": "fixture-export-v1",
+	"scenarios": {
+		"healthy-click": { "summary": "healthy action completed" },
+		"uncaught-exception": { "summary": "uncaught exception" },
+		"validation-visible": { "summary": "422 with validation message" },
+		"validation-hidden": { "summary": "422 without validation message" },
+		"patch-without-ui": { "summary": "PATCH 200 without UI evidence" },
+		"silent-click": { "summary": "no observable evidence" },
+		"polling-overlap": { "summary": "polling remains background" },
+		"analytics-overlap": { "summary": "analytics remains background" },
+		"websocket-background-receive": { "summary": "pre-existing receive remains background" },
+		"websocket-send": { "summary": "action WebSocket send" },
+		"click-submit-chain": { "summary": "click and submit share a chain" },
+		"rapid-actions": { "summary": "two independent actions" },
+		"request-outlives-window": { "summary": "request settles after action window" },
+		"same-origin-reload": { "summary": "same-origin Page Trace" },
+		"cross-origin-coverage-loss": { "summary": "probe coverage lost" },
+		"child-frame-action": { "summary": "child-frame action" },
+		"debugger-detach": { "summary": "debugger detached" },
+		"storage-quota": { "summary": "storage quota exceeded" },
+		"secret-redaction": {
+			"authorization": "[REDACTED]",
+			"uiText": "[REDACTED] [REDACTED]"
+		}
+	}
+}
