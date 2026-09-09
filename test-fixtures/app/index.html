@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>ActionWebTracer deterministic fixtures</title>
+	</head>
+	<body>
+		<main>
+			<h1>ActionWebTracer deterministic fixtures</h1>
+			<p id="result" role="status">Ready</p>
+			<section aria-label="Action fixtures">
+				<button data-scenario="healthy">Healthy action</button>
+				<button data-scenario="uncaught">Uncaught exception</button>
+				<button data-scenario="patch-without-ui">PATCH without UI</button>
+				<button data-scenario="silent">Silent action</button>
+				<button data-scenario="polling-overlap">Polling overlap</button>
+				<button data-scenario="analytics-overlap">Analytics overlap</button>
+				<button data-scenario="websocket-background-receive">WebSocket background receive</button>
+				<button data-scenario="websocket-send">WebSocket send</button>
+				<button data-scenario="rapid-actions">Rapid actions</button>
+				<button data-scenario="request-outlives-window">Slow request</button>
+				<button data-scenario="same-origin-reload">Same-origin reload</button>
+				<button data-scenario="cross-origin-coverage-loss">Cross-origin navigation</button>
+				<button data-scenario="child-frame-action">Child frame action</button>
+				<button data-scenario="debugger-detach">Debugger detach</button>
+				<button data-scenario="storage-quota">Storage quota</button>
+				<button data-scenario="secret-redaction">Secret redaction</button>
+			</section>
+			<form id="fixture-form">
+				<button name="validation-visible" value="visible">Validation with message</button>
+				<button name="validation-hidden" value="hidden">Validation without message</button>
+				<button name="click-submit-chain" value="chain">Click/submit chain</button>
+			</form>
+			<iframe id="fixture-frame" title="Cross-origin fixture frame"></iframe>
+		</main>
+		<script type="module" src="/app.js"></script>
+	</body>
+</html>

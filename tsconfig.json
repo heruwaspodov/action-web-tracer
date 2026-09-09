@@ -8,5 +8,5 @@
 		"lib": ["DOM", "ES2022"],
 		"types": ["chrome", "node", "vitest/globals"]
 	},
-	"include": ["src", "tests", "scripts"]
+	"include": ["src", "test-fixtures", "tests", "scripts"]
 }
