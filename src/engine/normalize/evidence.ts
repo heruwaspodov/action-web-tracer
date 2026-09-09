@@ -9,8 +9,9 @@ import {
 	type JsonValue,
 	type NormalizationResult,
 	type RawSourceEvent,
-} from '../../model/evidence.js';
+	} from '../../model/evidence.js';
 import { cdpTimestampToSessionUs, probeTimestampToSessionUs } from './clock.js';
+import { redactAtIngestion, type RedactionConfig } from '../redact/redact.js';
 
 const forbiddenPayloadKeys = new Set([
 	'authorization', 'body', 'cookie', 'cookies', 'formData', 'inputValue', 'payloadData', 'requestBody', 'responseBody', 'value',
@@ -76,7 +77,7 @@ function normalizeTimestamp(event: RawSourceEvent, calibration: ClockCalibration
 	return Math.round(event.timestamp * 1_000);
 }
 
-export function normalizeSourceEvent(event: RawSourceEvent, calibration: ClockCalibration): NormalizationResult {
+export function normalizeSourceEvent(event: RawSourceEvent, calibration: ClockCalibration, redactionConfig?: RedactionConfig): NormalizationResult {
 	const sessionId = requiredString(event.sessionId, 'sessionId');
 	if (event.source !== 'probe' && event.source !== 'cdp' && event.source !== 'extension') throw new Error('Unsupported evidence source.');
 	if (!evidenceKinds.includes(event.kind as EvidenceKind)) throw new Error('Unsupported evidence kind.');
@@ -87,6 +88,7 @@ export function normalizeSourceEvent(event: RawSourceEvent, calibration: ClockCa
 
 	const source = event.source as EvidenceSource;
 	const kind = event.kind as EvidenceKind;
+	const redactedPayload = redactAtIngestion(safeJson(event.payload), redactionConfig);
 	const canonical: EvidenceEnvelope = {
 		evidenceId: `${sessionId}:${source}:${event.sourceSequence}`,
 		sessionId,
@@ -96,8 +98,8 @@ export function normalizeSourceEvent(event: RawSourceEvent, calibration: ClockCa
 		timestampUs: normalizeTimestamp(event, calibration),
 		wallTime: optionalString(event.wallTime, 'wallTime'),
 		frame: normalizeFrame(event.frame),
-		payload: safeJson(event.payload),
-		redaction: { applied: false, fields: [] },
+		payload: redactedPayload.value,
+		redaction: redactedPayload.redaction,
 		// The brand prevents raw adapter input from satisfying EvidenceEnvelope at compile time.
 		[canonicalEvidenceBrand]: true,
 	};
