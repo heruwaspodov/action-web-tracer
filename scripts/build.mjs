@@ -36,10 +36,11 @@ await Promise.all([
 await Promise.all([
 	cp('manifest.json', `${outputDirectory}/manifest.json`),
 	cp('sidepanel.html', `${outputDirectory}/sidepanel.html`),
+	cp('sidepanel.css', `${outputDirectory}/sidepanel.css`),
 ]);
 
 const packagedFiles = await Promise.all(
-	['background.js', 'page-probe.js', 'sidepanel.html', 'sidepanel.js'].map(async (fileName) =>
+	['background.js', 'page-probe.js', 'sidepanel.html', 'sidepanel.css', 'sidepanel.js'].map(async (fileName) =>
 		readFile(`${outputDirectory}/${fileName}`, 'utf8'),
 	),
 );

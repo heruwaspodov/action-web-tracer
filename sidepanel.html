@@ -4,6 +4,7 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>ActionWebTracer</title>
+		<link rel="stylesheet" href="./sidepanel.css" />
 	</head>
 	<body>
 		<main aria-labelledby="panel-title">
@@ -15,10 +16,10 @@
 				<p id="recording-status" role="status"></p>
 				<p id="recording-detail"></p>
 			</section>
-			<section aria-labelledby="privacy-title">
-				<h2 id="privacy-title">Permission and privacy</h2>
+			<details class="privacy">
+				<summary>Permission and privacy</summary>
 				<p>Tracing uses Chrome debugger access only for this tab. Captured evidence stays on this device; request bodies, response bodies, cookies, form values, and WebSocket payloads are not captured.</p>
-			</section>
+			</details>
 			<div aria-label="Recording controls">
 				<button id="start-recording" type="button">Trace This Tab</button>
 				<button id="stop-recording" type="button">Stop</button>

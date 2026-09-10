@@ -1,0 +1,177 @@
+:root {
+	color-scheme: light;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	background: #fff7ed;
+	color: #111;
+}
+
+* { box-sizing: border-box; }
+
+body {
+	min-width: 300px;
+	margin: 0;
+	background: #fff7ed;
+}
+
+main {
+	display: grid;
+	gap: 12px;
+	padding: 16px;
+}
+
+h1, h2, p { margin: 0; }
+
+h1 {
+	width: fit-content;
+	padding: 4px 7px;
+	border: 2px solid #111;
+	background: #ff6b6b;
+	box-shadow: 3px 3px 0 #111;
+	color: #fff;
+	font-size: 18px;
+	line-height: 1.2;
+	letter-spacing: -0.06em;
+}
+
+#panel-title,
+section,
+details.privacy,
+div[aria-label="Recording controls"] {
+	border: 2px solid #111;
+	border-radius: 0;
+	background: #fff;
+	box-shadow: 4px 4px 0 #111;
+}
+
+#panel-title {
+	padding: 10px;
+	background: #ffe66d;
+	color: #222;
+	font-size: 12px;
+	line-height: 1.45;
+}
+
+#recording-badge:empty { display: none; }
+
+#recording-badge {
+	width: fit-content;
+	padding: 4px 8px;
+	border: 2px solid #111;
+	border-radius: 0;
+	background: #c4b5fd;
+	box-shadow: 2px 2px 0 #111;
+	color: #111;
+	font-size: 10px;
+	font-weight: 700;
+}
+
+section { overflow: hidden; }
+
+section[aria-labelledby="status-title"] { background: #6ee7b7; }
+
+details.privacy { overflow: hidden; }
+
+details.privacy summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 10px;
+	background: #111;
+	color: #fff;
+	cursor: pointer;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.01em;
+	list-style: none;
+}
+
+details.privacy summary::-webkit-details-marker { display: none; }
+details.privacy summary::after { content: "+"; font-size: 16px; line-height: 1; }
+details.privacy[open] summary::after { content: "−"; }
+details.privacy summary:focus-visible {
+	outline: 3px solid #1769e0;
+	outline-offset: -3px;
+}
+
+details.privacy p {
+	padding: 10px;
+	background: #c4b5fd;
+	color: #333;
+	font-size: 11px;
+	line-height: 1.5;
+}
+
+section h2 {
+	padding: 8px 10px;
+	border-bottom: 2px solid #111;
+	background: #111;
+	color: #fff;
+	font-size: 11px;
+	letter-spacing: 0.01em;
+}
+
+section p:not(:first-child) {
+	padding: 10px;
+	color: #333;
+	font-size: 11px;
+	line-height: 1.5;
+}
+
+#recording-status {
+	padding-bottom: 0;
+	color: #111;
+	font-size: 14px;
+	font-weight: 650;
+}
+
+div[aria-label="Recording controls"] {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 10px;
+	padding: 10px;
+	background: #60a5fa;
+}
+
+button {
+	min-height: 36px;
+	padding: 0 14px;
+	border: 2px solid #111;
+	border-radius: 0;
+	background: #fff;
+	box-shadow: 3px 3px 0 #111;
+	color: #111;
+	font: 800 11px/1 inherit;
+	cursor: pointer;
+}
+
+#start-recording {
+	border-color: #111;
+	background: #ffe66d;
+	color: #111;
+}
+
+#stop-recording { background: #ff8ab3; }
+button:hover:not(:disabled) { background: #6ee7b7; }
+
+button:active:not(:disabled) {
+	transform: translate(3px, 3px);
+	box-shadow: none;
+}
+
+button:focus-visible {
+	outline: 3px solid #1769e0;
+	outline-offset: 2px;
+}
+
+button:disabled {
+	border-color: #777;
+	background: #e4e0d8;
+	box-shadow: 2px 2px 0 #777;
+	color: #777;
+	cursor: not-allowed;
+}
+
+@media (max-width: 350px) {
+	main { padding: 12px; }
+	div[aria-label="Recording controls"] { grid-template-columns: 1fr; }
+}
