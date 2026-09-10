@@ -1,7 +1,13 @@
 :root {
+	min-height: 100%;
 	color-scheme: light;
 	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-	background: #fff7ed;
+	background:
+		linear-gradient(rgb(17 17 17 / 13%) 1px, transparent 1px),
+		linear-gradient(90deg, rgb(17 17 17 / 13%) 1px, transparent 1px),
+		#fff7ed;
+	background-attachment: fixed;
+	background-size: 24px 24px;
 	color: #111;
 }
 
@@ -9,8 +15,9 @@
 
 body {
 	min-width: 300px;
+	min-height: 100vh;
 	margin: 0;
-	background: #fff7ed;
+	background: transparent;
 }
 
 main {
