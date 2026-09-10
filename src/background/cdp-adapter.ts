@@ -1,3 +1,5 @@
+import { CdpNetworkEvidenceCollector, type CapturedNetworkEvidence } from './network-evidence.js';
+
 export const approvedCdpDomains = ['Network', 'Runtime', 'Log', 'Page', 'Target'] as const;
 export type ApprovedCdpDomain = (typeof approvedCdpDomains)[number];
 export type CdpErrorCode = 'restricted_target' | 'competing_debugger' | 'protocol_error';
@@ -26,6 +28,8 @@ export class CdpAdapter {
 	readonly #frames = new Map<string, FrameIdentity>();
 	readonly #contexts = new Map<number, string>();
 	readonly #failures: AdapterFailure[] = [];
+	readonly #networkEvidence = new CdpNetworkEvidenceCollector();
+	readonly #evidenceListeners: ((event: CapturedNetworkEvidence) => void)[] = [];
 	#tabId: number | undefined;
 	#capabilities: CdpCapabilities = { Network: false, Runtime: false, Log: false, Page: false, Target: false };
 
@@ -38,6 +42,7 @@ export class CdpAdapter {
 	get executionContexts(): ReadonlyMap<number, string> { return this.#contexts; }
 	get failures(): readonly AdapterFailure[] { return this.#failures; }
 	get capabilities(): CdpCapabilities { return this.#capabilities; }
+	onEvidence(listener: (event: CapturedNetworkEvidence) => void): void { this.#evidenceListeners.push(listener); }
 
 	async attach(tabId: number): Promise<void> {
 		try { await this.transport.attach(tabId, '1.3'); } catch (error) { throw failure(error); }
@@ -50,7 +55,11 @@ export class CdpAdapter {
 		if (this.#tabId === undefined) return;
 		const command = domain === 'Target' ? 'Target.setAutoAttach' : `${domain}.enable`;
 		const params = domain === 'Target' ? { autoAttach: true, waitForDebuggerOnStart: false, flatten: true } : undefined;
-		try { await this.transport.send(this.#tabId, command, params, sessionId); this.#capabilities = { ...this.#capabilities, [domain]: true }; }
+		try {
+			await this.transport.send(this.#tabId, command, params, sessionId);
+			if (domain === 'Page') await this.transport.send(this.#tabId, 'Page.setLifecycleEventsEnabled', { enabled: true }, sessionId);
+			this.#capabilities = { ...this.#capabilities, [domain]: true };
+		}
 		catch (error) { this.#failures.push(failure(error, domain)); }
 	}
 
@@ -72,6 +81,9 @@ export class CdpAdapter {
 				await Promise.all(approvedCdpDomains.filter((domain) => domain !== 'Target').map(async (domain) => this.enable(domain, childSession)));
 			}
 		}
+		const frameId = typeof params.frameId === 'string' ? params.frameId : undefined;
+		const evidence = this.#networkEvidence.handle(method, params, frameId ? this.#frames.get(frameId) : undefined);
+		for (const event of evidence) this.#evidenceListeners.forEach((listener) => listener(event));
 	}
 }
 
