@@ -43,4 +43,14 @@ describe('CDP target orchestration', () => {
 		expect(JSON.stringify(evidence)).not.toContain('never retain');
 		expect(transport.commands.map((command) => command.method)).not.toEqual(expect.arrayContaining(['Network.getResponseBody', 'Network.getRequestPostData']));
 	});
+	it('emits runtime exceptions with their execution-context frame and no remote-object data', async () => {
+		const transport = new FakeTransport(); const adapter = new CdpAdapter(transport); const evidence: unknown[] = [];
+		adapter.onEvidence((event) => evidence.push(event)); await adapter.attach(4);
+		transport.emit('Page.frameNavigated', { frame: { id: 'main', url: 'https://app.test' } });
+		transport.emit('Runtime.executionContextCreated', { context: { id: 9, auxData: { frameId: 'main' } } });
+		transport.emit('Runtime.exceptionThrown', { timestamp: 1_700_000_000_000, exceptionDetails: { executionContextId: 9, text: 'Uncaught', exception: { className: 'TypeError', description: 'cannot read', objectId: 'never retain' } } });
+		for (let tick = 0; tick < 3; tick += 1) await Promise.resolve();
+		expect(evidence).toEqual(expect.arrayContaining([expect.objectContaining({ kind: 'runtime.exception', frame: expect.objectContaining({ frameId: 'main' }) })]));
+		expect(JSON.stringify(evidence)).not.toContain('never retain');
+	});
 });

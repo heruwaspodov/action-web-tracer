@@ -8,6 +8,7 @@ import {
 	type FrameIdentity,
 	type JsonValue,
 	type NormalizationResult,
+	type RedactionSummary,
 	type RawSourceEvent,
 	} from '../../model/evidence.js';
 import { cdpTimestampToSessionUs, probeTimestampToSessionUs } from './clock.js';
@@ -72,9 +73,19 @@ function normalizeTimestamp(event: RawSourceEvent, calibration: ClockCalibration
 	if (typeof event.timestamp !== 'number' || !Number.isFinite(event.timestamp) || event.timestamp < 0) {
 		throw new Error('timestamp must be a finite non-negative number.');
 	}
+	if (event.timestampOrigin !== undefined && event.timestampOrigin !== 'cdp_monotonic' && event.timestampOrigin !== 'epoch_milliseconds') throw new Error('timestampOrigin is invalid.');
+	if (event.timestampOrigin === 'epoch_milliseconds') return probeTimestampToSessionUs(event.timestamp, calibration);
 	if (event.source === 'cdp') return cdpTimestampToSessionUs(event.timestamp, calibration);
 	if (event.source === 'probe') return probeTimestampToSessionUs(event.timestamp, calibration);
 	return Math.round(event.timestamp * 1_000);
+}
+
+function normalizePreRedaction(value: unknown): RedactionSummary {
+	if (value === undefined) return { applied: false, fields: [] };
+	if (!isRecord(value) || typeof value.applied !== 'boolean' || !Array.isArray(value.fields) || value.fields.some((field) => typeof field !== 'string')) {
+		throw new Error('preRedaction must be a redaction summary.');
+	}
+	return { applied: value.applied, fields: value.fields as readonly string[] };
 }
 
 export function normalizeSourceEvent(event: RawSourceEvent, calibration: ClockCalibration, redactionConfig?: RedactionConfig): NormalizationResult {
@@ -88,6 +99,7 @@ export function normalizeSourceEvent(event: RawSourceEvent, calibration: ClockCa
 
 	const source = event.source as EvidenceSource;
 	const kind = event.kind as EvidenceKind;
+	const preRedaction = normalizePreRedaction(event.preRedaction);
 	const redactedPayload = redactAtIngestion(safeJson(event.payload), redactionConfig);
 	const canonical: EvidenceEnvelope = {
 		evidenceId: `${sessionId}:${source}:${event.sourceSequence}`,
@@ -99,7 +111,7 @@ export function normalizeSourceEvent(event: RawSourceEvent, calibration: ClockCa
 		wallTime: optionalString(event.wallTime, 'wallTime'),
 		frame: normalizeFrame(event.frame),
 		payload: redactedPayload.value,
-		redaction: redactedPayload.redaction,
+		redaction: { applied: preRedaction.applied || redactedPayload.redaction.applied, fields: [...new Set([...preRedaction.fields, ...redactedPayload.redaction.fields])] },
 		// The brand prevents raw adapter input from satisfying EvidenceEnvelope at compile time.
 		[canonicalEvidenceBrand]: true,
 	};
