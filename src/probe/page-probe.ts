@@ -1,3 +1,5 @@
+import { PROBE_HEARTBEAT_MS, UiMutationBatcher, type UiEvidence, type UiMutation } from './ui-evidence.js';
+
 export const CLICK_SUBMIT_DEDUPE_MS = 250;
 export const MAX_ACTION_LABEL_LENGTH = 120;
 export const MAX_SELECTOR_HINT_LENGTH = 240;
@@ -45,8 +47,24 @@ function installPageProbe(): void {
 	const isMainFrame = window.top === window;
 	const clock: ProbeClock = { nowEpochMilliseconds: () => performance.timeOrigin + performance.now(), setTimeout: (callback, delayMs) => globalThis.setTimeout(callback, delayMs), clearTimeout: (handle) => globalThis.clearTimeout(handle as number) };
 	const observer = new TrustedActionObserver(clock, { framePath: [isMainFrame ? 'top' : 'child'], isMainFrame }, (action) => { chrome.runtime.sendMessage({ type: 'awt.probe.action', action }); });
+	const frame = { isMainFrame };
+	const emitUiEvidence = (evidence: UiEvidence) => { chrome.runtime.sendMessage({ type: 'awt.probe.ui_evidence', timestamp: clock.nowEpochMilliseconds(), frame, evidence }); };
+	const batcher = new UiMutationBatcher(clock, emitUiEvidence);
+	const mutationObserver = new MutationObserver((records) => {
+		batcher.push(records.map((record): UiMutation => ({ type: record.type, target: record.target as never, attributeName: record.attributeName, addedNodes: Array.from(record.addedNodes), removedNodes: Array.from(record.removedNodes) })));
+	});
+	mutationObserver.observe(document.documentElement, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['aria-expanded', 'aria-selected', 'aria-checked', 'aria-invalid', 'disabled', 'hidden', 'open'] });
 	document.addEventListener('click', (event) => observer.handleClick(event), true);
 	document.addEventListener('submit', (event) => observer.handleSubmit(event), true);
+	document.addEventListener('focusin', () => emitUiEvidence({ signals: ['focus_changed'], count: 1 }), true);
+	window.addEventListener('popstate', () => emitUiEvidence({ signals: ['url_changed'], count: 1 }));
+	window.addEventListener('hashchange', () => emitUiEvidence({ signals: ['url_changed'], count: 1 }));
+	if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => emitUiEvidence({ signals: ['geometry_changed'], count: 1 })).observe(document.documentElement);
+	let lastUrl = location.href;
+	globalThis.setInterval(() => {
+		if (location.href !== lastUrl) { lastUrl = location.href; emitUiEvidence({ signals: ['url_changed'], count: 1 }); }
+		chrome.runtime.sendMessage({ type: 'awt.probe.heartbeat', timestamp: clock.nowEpochMilliseconds(), frame });
+	}, PROBE_HEARTBEAT_MS);
 }
 
 installPageProbe();
