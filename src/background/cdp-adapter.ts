@@ -1,5 +1,6 @@
 import { CdpNetworkEvidenceCollector, type CapturedNetworkEvidence } from './network-evidence.js';
 import { CdpRuntimeEvidenceCollector, type CapturedRuntimeEvidence } from './runtime-evidence.js';
+import { CdpWebSocketEvidenceCollector, type CapturedWebSocketEvidence } from './websocket-evidence.js';
 
 export const approvedCdpDomains = ['Network', 'Runtime', 'Log', 'Page', 'Target'] as const;
 export type ApprovedCdpDomain = (typeof approvedCdpDomains)[number];
@@ -7,7 +8,7 @@ export type CdpErrorCode = 'restricted_target' | 'competing_debugger' | 'protoco
 export type AdapterFailure = { readonly code: CdpErrorCode; readonly capability?: ApprovedCdpDomain };
 export type FrameIdentity = { readonly frameId: string; readonly parentFrameId?: string; readonly isMainFrame: boolean; readonly urlOrigin?: string; readonly process: 'same_process' | 'out_of_process' };
 export type CdpCapabilities = Readonly<Record<ApprovedCdpDomain, boolean>>;
-export type CapturedCdpEvidence = CapturedNetworkEvidence | CapturedRuntimeEvidence;
+export type CapturedCdpEvidence = CapturedNetworkEvidence | CapturedRuntimeEvidence | CapturedWebSocketEvidence;
 
 export interface DebuggerTransport {
 	attach(tabId: number, protocolVersion: string): Promise<void>;
@@ -32,6 +33,7 @@ export class CdpAdapter {
 	readonly #failures: AdapterFailure[] = [];
 	readonly #networkEvidence = new CdpNetworkEvidenceCollector();
 	readonly #runtimeEvidence = new CdpRuntimeEvidenceCollector();
+	readonly #webSocketEvidence = new CdpWebSocketEvidenceCollector();
 	readonly #evidenceListeners: ((event: CapturedCdpEvidence) => void)[] = [];
 	#tabId: number | undefined;
 	#capabilities: CdpCapabilities = { Network: false, Runtime: false, Log: false, Page: false, Target: false };
@@ -45,6 +47,8 @@ export class CdpAdapter {
 	get executionContexts(): ReadonlyMap<number, string> { return this.#contexts; }
 	get failures(): readonly AdapterFailure[] { return this.#failures; }
 	get capabilities(): CdpCapabilities { return this.#capabilities; }
+	get webSocketFrameCounts() { return this.#webSocketEvidence.frameCounts; }
+	get webSocketMachineContext() { return this.#webSocketEvidence.machineContext; }
 	onEvidence(listener: (event: CapturedCdpEvidence) => void): void { this.#evidenceListeners.push(listener); }
 
 	async attach(tabId: number): Promise<void> {
@@ -90,7 +94,8 @@ export class CdpAdapter {
 		const contextId = typeof params.executionContextId === 'number' ? params.executionContextId : typeof exceptionDetails?.executionContextId === 'number' ? exceptionDetails.executionContextId : undefined;
 		const contextFrame = contextId === undefined ? undefined : this.#frames.get(this.#contexts.get(contextId) ?? '');
 		const runtimeEvidence = this.#runtimeEvidence.handle(method, params, contextFrame);
-		const evidence = [...networkEvidence, ...runtimeEvidence];
+		const webSocketEvidence = this.#webSocketEvidence.handle(method, params, frameId ? this.#frames.get(frameId) : undefined);
+		const evidence = [...networkEvidence, ...runtimeEvidence, ...webSocketEvidence];
 		for (const event of evidence) this.#evidenceListeners.forEach((listener) => listener(event));
 	}
 }

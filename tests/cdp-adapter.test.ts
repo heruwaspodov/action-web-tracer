@@ -53,4 +53,18 @@ describe('CDP target orchestration', () => {
 		expect(evidence).toEqual(expect.arrayContaining([expect.objectContaining({ kind: 'runtime.exception', frame: expect.objectContaining({ frameId: 'main' }) })]));
 		expect(JSON.stringify(evidence)).not.toContain('never retain');
 	});
+	it('emits WebSocket metadata and exposes sent and received frame counts', async () => {
+		const transport = new FakeTransport(); const adapter = new CdpAdapter(transport); const evidence: unknown[] = [];
+		adapter.onEvidence((event) => evidence.push(event)); await adapter.attach(4);
+		transport.emit('Page.frameNavigated', { frame: { id: 'main', url: 'https://app.test' } });
+		transport.emit('Network.requestWillBeSent', { requestId: 'socket', type: 'WebSocket', frameId: 'main', request: { url: 'wss://app.test/socket' } });
+		transport.emit('Network.webSocketWillSendHandshakeRequest', { requestId: 'socket', timestamp: 10 });
+		transport.emit('Network.webSocketFrameSent', { requestId: 'socket', timestamp: 10.1, response: { opcode: 1, payloadData: 'never retain' } });
+		transport.emit('Network.webSocketFrameReceived', { requestId: 'socket', timestamp: 10.2, response: { opcode: 1, payloadData: 'never retain' } });
+		for (let tick = 0; tick < 3; tick += 1) await Promise.resolve();
+		expect(evidence).toEqual(expect.arrayContaining([expect.objectContaining({ kind: 'websocket.created' }), expect.objectContaining({ kind: 'websocket.frame_sent' }), expect.objectContaining({ kind: 'websocket.frame_received' })]));
+		expect(adapter.webSocketFrameCounts).toEqual({ sent: 1, received: 1 });
+		expect(adapter.webSocketMachineContext).toEqual({ websocketConnectionCount: 1, websocketSentFrameCount: 1, websocketReceivedFrameCount: 1 });
+		expect(JSON.stringify(evidence)).not.toContain('never retain');
+	});
 });
