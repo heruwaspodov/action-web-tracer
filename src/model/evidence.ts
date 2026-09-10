@@ -19,6 +19,7 @@ export const evidenceKinds = [
 
 export type EvidenceKind = (typeof evidenceKinds)[number];
 export type EvidenceSource = 'probe' | 'cdp' | 'extension';
+export type TimestampOrigin = 'cdp_monotonic' | 'epoch_milliseconds';
 export type JsonValue = boolean | number | string | null | readonly JsonValue[] | { readonly [key: string]: JsonValue };
 
 export type FrameIdentity = {
@@ -77,6 +78,8 @@ export type RawSourceEvent = {
 	readonly sourceSequence: unknown;
 	readonly kind: unknown;
 	readonly timestamp: unknown;
+	readonly timestampOrigin?: unknown;
+	readonly preRedaction?: unknown;
 	readonly wallTime?: unknown;
 	readonly frame?: RawFrameIdentity;
 	readonly payload: unknown;
