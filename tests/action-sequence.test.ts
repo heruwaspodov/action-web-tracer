@@ -1,0 +1,6 @@
+import { describe, expect, it } from 'vitest';
+import { projectActionSequence } from '../src/sidepanel/action-sequence.js';
+describe('action sequence', () => {
+	it('orders source evidence deterministically and excludes collapsed background', () => { const rows = [{ evidenceId: 'b', lane: 'network', offsetMs: 2, state: 'complete', phases: [], correlationReasons: [] }, { evidenceId: 'a', lane: 'action', offsetMs: 0, state: 'complete', phases: [], correlationReasons: [] }, { evidenceId: 'poll', lane: 'background', offsetMs: 1, state: 'complete', phases: [], correlationReasons: [] }] as const; expect(projectActionSequence(rows, 'HEALTHY').map((node) => node.evidenceId)).toEqual(['a', 'b']); expect(projectActionSequence(rows, 'HEALTHY', true)[1]).toMatchObject({ evidenceId: 'poll', status: 'possibly_related' }); });
+	it('adds missing UI only for the explicit sync-failure state', () => { const rows = [{ evidenceId: 'request', lane: 'network', offsetMs: 1, state: 'complete', phases: [], correlationReasons: [] }] as const; expect(projectActionSequence(rows, 'UI_SYNC_FAILURE').some((node) => node.status === 'missing_ui')).toBe(true); expect(projectActionSequence(rows, 'HEALTHY').some((node) => node.status === 'missing_ui')).toBe(false); });
+});
