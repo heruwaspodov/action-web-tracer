@@ -1,0 +1,6 @@
+import { describe, expect, it } from 'vitest';
+import { projectWaterfall } from '../src/sidepanel/waterfall.js';
+describe('waterfall projection', () => {
+	it('places all evidence lanes on one time axis without causal claims', () => { const rows = projectWaterfall([{ evidenceId: 'a', lane: 'action', startedAtMs: 0, endedAtMs: 10 }, { evidenceId: 'n', lane: 'network', startedAtMs: 5, endedAtMs: 20, waitingMs: 5, downloadMs: 2 }, { evidenceId: 'b', lane: 'background', startedAtMs: 6 }, { evidenceId: 'w', lane: 'websocket', startedAtMs: 7, endedAtMs: 8, failed: true }]); expect(rows.map((row) => row.lane)).toEqual(['action', 'network', 'background', 'websocket']); expect(rows[1]).toMatchObject({ phases: ['waiting', 'download'], state: 'complete' }); expect(rows[2].state).toBe('unfinished'); expect(rows[3].state).toBe('failed'); });
+	it('handles 500 events within the UI budget and keeps row evidence links', () => { const events = Array.from({ length: 500 }, (_, index) => ({ evidenceId: `e-${index}`, lane: 'network' as const, startedAtMs: index, endedAtMs: index + 1, correlationReasons: ['same_frame'] })); const started = performance.now(); const rows = projectWaterfall(events); expect(rows).toHaveLength(500); expect(rows[0].correlationReasons).toEqual(['same_frame']); expect(performance.now() - started).toBeLessThan(100); });
+});
