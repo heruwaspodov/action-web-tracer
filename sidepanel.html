@@ -24,6 +24,17 @@
 				<button id="start-recording" type="button">Trace This Tab</button>
 				<button id="stop-recording" type="button">Stop</button>
 			</div>
+			<section aria-labelledby="traces-title">
+				<h2 id="traces-title">Completed traces</h2>
+				<p id="trace-empty" role="status">No completed traces yet.</p>
+				<ul id="trace-list" aria-label="Completed trace list"></ul>
+			</section>
+			<section aria-labelledby="detail-title">
+				<h2 id="detail-title">Trace detail</h2>
+				<p id="trace-detail-empty">Select a trace to inspect its timeline, evidence, findings, and background activity.</p>
+				<div id="trace-detail" aria-live="polite"></div>
+				<div aria-label="Export actions"><button type="button" id="export-json">Export JSON</button><button type="button" id="export-markdown">Export Markdown</button></div>
+			</section>
 		</main>
 		<script type="module" src="./sidepanel.js"></script>
 	</body>
